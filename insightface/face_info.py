@@ -10,7 +10,7 @@ class FaceInfo:
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
     #输出性别，年龄，脸部坐标
-    def get_face_info(self, image_file, save_face_image=False):
+    def get_face_info(self, image_file, save_face_image=False, face_draw=False):
         face_info=[]
         #判断文件是否存在
         if os.path.exists(image_file):
@@ -28,9 +28,17 @@ class FaceInfo:
         img = cv2.imread(image_file)
         #获取脸信息
         faces = self.app.get(img)
+        if len(faces) <=0:
+            return "no face"
+        #脸部画框保存下来
+        if face_draw:
+            rimg = self.app.draw_on(img, faces)
+            rect_img = os.path.join(image_file_dir, image_file_name +"_rect.jpg")
+            cv2.imwrite(rect_img, rimg)
         #把脸的信息写入数组
         for i in range(len(faces)):
             face = faces[i]
+            # print(face)
             box = face.bbox.astype(int)
             if save_face_image:
                 save_face = os.path.join(image_file_dir, image_file_name +"_"+ str(i) + ".jpg")
@@ -50,5 +58,5 @@ if __name__ == "__main__":
     print(face_info)
     face_info=face.get_face_info("./t3.jpeg", save_face_image=True)
     print(face_info)
-    face_info=face.get_face_info("./t4.jpeg", save_face_image=True)
+    face_info=face.get_face_info("./t4.jpg", save_face_image=True, face_draw=True)
     print(face_info)
