@@ -16,8 +16,8 @@ class FaceInfo:
         if os.path.exists(image_file):
             pass
         else:
-            print('%s file not exist'%image_file)
-            return face_info
+            # print('%s file not exist'%image_file)
+            return "%s file not exist"%image_file
         #获取图片路径
         image_file_dir = os.path.dirname(image_file)
         # print(image_file_dir)
@@ -34,7 +34,7 @@ class FaceInfo:
             box = face.bbox.astype(int)
             if save_face_image:
                 save_face = os.path.join(image_file_dir, image_file_name +"_"+ str(i) + ".jpg")
-                print(save_face)
+                # print(save_face)
                 face_image = img[box[1]:box[1]+(box[3]-box[1]),box[0]:box[0]+(box[2]-box[0])]
                 cv2.imwrite(save_face,face_image)
             # print(face.sex,face.age, [box[0], box[1], box[2], box[3])
@@ -45,4 +45,10 @@ class FaceInfo:
 if __name__ == "__main__":
     face = FaceInfo()
     face_info=face.get_face_info("./t1.jpg", save_face_image=True)
+    print(face_info)
+    face_info=face.get_face_info("./t2.jpeg", save_face_image=True)
+    print(face_info)
+    face_info=face.get_face_info("./t3.jpeg", save_face_image=True)
+    print(face_info)
+    face_info=face.get_face_info("./t4.jpeg", save_face_image=True)
     print(face_info)
