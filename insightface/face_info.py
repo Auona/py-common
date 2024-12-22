@@ -3,11 +3,12 @@ import os
 import numpy as np
 import insightface
 from insightface.app import FaceAnalysis
+from numpy.linalg import norm
 
 class FaceInfo:
     def __init__(self):
         self.app = FaceAnalysis(providers=['CUDAExecutionProvider', 'CPUExecutionProvider'])
-        self.app.prepare(ctx_id=0, det_size=(640, 640))
+        self.app.prepare(ctx_id=0, det_size=(640, 640)) #ctx_id cpu -1 gpu 1
 
     #输出性别，年龄，脸部坐标
     def get_face_info(self, image_file, save_face_image=False, face_draw=False):
@@ -30,6 +31,7 @@ class FaceInfo:
         faces = self.app.get(img)
         if len(faces) <=0:
             return "no face"
+        #TODO:如果整张图是一张大脸，是找不到脸的
         #脸部画框保存下来
         if face_draw:
             rimg = self.app.draw_on(img, faces)
@@ -49,14 +51,43 @@ class FaceInfo:
             face_info.append({"sex":face.sex,"age":face.age, "rect":[box[0], box[1], box[2], box[3]]})
         #返回结果
         return face_info
+    
+    def compare_face(self, image_file1, image_file2, threshold=0.6):
+        #判断文件是否存在
+        if os.path.exists(image_file1) and os.path.exists(image_file2):
+            pass
+        else:
+            # print('%s file not exist'%image_file)
+            return "%s,%s file not exist"%(image_file1, image_file2)
+        #TODO:人脸对齐
+        #分析人脸
+        img1 = cv2.imread(image_file1)
+        faces1 = self.app.get(img1)
+        if len(faces1) <=0:
+            return "%s have no face"%image_file1
+        img2 = cv2.imread(image_file2)
+        faces2 = self.app.get(img2)
+        if len(faces2) <=0:
+            return "%s have no face"%image_file2
+        #计算相似度
+        faces1_embedding = faces1[0].normed_embedding
+        faces2_embedding = faces2[0].normed_embedding
+        score = np.dot(faces1_embedding, faces2_embedding)/(norm(faces1_embedding)*norm(faces2_embedding))
+        print(score)
+        if score > threshold:
+            return "yes"
+        else:
+            return "no"        
 
 if __name__ == "__main__":
     face = FaceInfo()
-    face_info=face.get_face_info("./t1.jpg", save_face_image=True)
-    print(face_info)
-    face_info=face.get_face_info("./t2.jpeg", save_face_image=True)
-    print(face_info)
-    face_info=face.get_face_info("./t3.jpeg", save_face_image=True)
-    print(face_info)
-    face_info=face.get_face_info("./t4.jpg", save_face_image=True, face_draw=True)
-    print(face_info)
+    # result=face.get_face_info("./t1.jpg", save_face_image=True)
+    # print(result)
+    # result=face.get_face_info("./t2.jpeg", save_face_image=True)
+    # print(result)
+    # result=face.get_face_info("./t3.jpeg", save_face_image=True)
+    # print(result)
+    # result=face.get_face_info("./t4.jpg", save_face_image=True, face_draw=True)
+    # print(result)
+    result=face.compare_face("./t4.jpg", "./t4_rect.jpg")
+    print(result)
